@@ -6,22 +6,24 @@ var prefix      =   require('gulp-autoprefixer');
 var sourcemaps  =   require('gulp-sourcemaps');
 var browserSync =   require('browser-sync');
 
-gulp.task('sass', function() {
-    return gulp.src('./assets/scss/**/*.{scss,sass}')
-        .pipe(sourcemaps.init())
-        .pipe(sass().on('error', sass.logError))
-        .pipe(sourcemaps.write('.'))
-        .pipe(gulp.dest('./assets/css'));
-});
+var pathSASS    =   'assets/scss/*.{scss,sass}';
+var pathCSS     =   'assets/css/'
 
-gulp.task('browser-sync', function() {
-    browserSync.init('./**', {
+gulp.task('default', ['browser-sync']);
+
+gulp.task('browser-sync', ['sass'], function() {
+    browserSync.init({
         proxy: 'localhost/gulp-task'
     });
+
+    gulp.watch(pathSASS, ['sass']);
+    gulp.watch('./**/*.php').on('change', browserSync.reload);
 });
 
-gulp.task('watch', function() {
-    gulp.watch('./assets/scss/**.*.{scss,sass}', ['sass']);
+gulp.task('sass', function() {
+    return gulp.src(pathSASS)
+        .pipe(sass({ onError: browserSync.notify }))
+        .pipe(prefix({ browsers: ['last 2 versions'], }))
+        .pipe(gulp.dest(pathCSS))
+        .pipe(browserSync.stream());
 });
-
-gulp.task('default', ['browser-sync', 'watch']);
